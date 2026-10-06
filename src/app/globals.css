@@ -1,26 +1,51 @@
 @import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Ajustes globales para que el mapa ocupe toda la pantalla sin scrollbars */
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #09090b; /* zinc-950 */
+  color: #ffffff;
 }
+
+
+/* --- Limpiar estilos por defecto de Mapbox Popups --- */
+.mapboxgl-popup-content {
+  background: transparent !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.mapboxgl-popup-tip {
+  display: none !important; /* Opcional: le vuela la flecha culiá si te estorba */
+}
+
+/* Ocultar scrollbar por defecto pero mantener la funcionalidad de scroll en contenedores */
+.custom-scrollbar {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #0369a1 #27272a; /* thumb (sky-700) y track (zinc-800) para Firefox */
+}
+
+/* Para navegadores basados en Webkit (Chrome, Edge, Safari) */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px; /* Ancho delgado elegante */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #27272a; /* Fondo del carril: bg-zinc-800 */
+  border-radius: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #0369a1; /* Color del slider: bg-sky-700 */
+  border-radius: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #0284c7; /* Un tono un poco más claro al pasar el mouse (sky-600) */
+}
+
