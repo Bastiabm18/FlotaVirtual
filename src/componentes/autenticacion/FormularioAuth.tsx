@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { FiTruck, FiLock, FiMail, FiUser, FiBriefcase } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
+import { iniciarSesion, obtenerUrlGoogle, registrarUsuario } from '@/actions/usuario/actions';
 
 export default function FormularioAuth() {
   const [esRegistro, setEsRegistro] = useState(false);
@@ -18,56 +19,41 @@ export default function FormularioAuth() {
   const router = useRouter();
   const supabase = createClient();
 
-  const manejarAutenticacion = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setCargando(true);
-    setError(null);
+const manejarAutenticacion = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setCargando(true);
+  setError(null);
 
-    try {
-      if (esRegistro) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              nombre_completo: nombre,
-              empresa: empresa,
-            },
-          },
-        });
-        if (error) throw error;
-        alert('Registro exitoso. Revisa tu correo o inicia sesión.');
-        setEsRegistro(false);
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) throw error;
-        router.push('/miSeguimiento');
-        router.refresh();
-      }
-    } catch (err: any) {
-      setError(err.message || 'Ocurrió un error en la autenticación.');
-    } finally {
-      setCargando(false);
+  if (esRegistro) {
+    const res = await registrarUsuario({ email, password, nombre, empresa });
+    if (!res.exito) {
+      setError(res.error || 'Ocurrió un error en el registro.');
+    } else {
+      alert('Registro exitoso. Revisa tu correo o inicia sesión.');
+      setEsRegistro(false);
     }
-  };
+  } else {
+    const res = await iniciarSesion(email, password);
+    if (!res.exito) {
+      setError(res.error || 'Credenciales inválidas.');
+    } else {
+      router.push('/miSeguimiento');
+      router.refresh();
+    }
+  }
 
-  const iniciarSesionConGoogle = async () => {
-    try {
-      setError(null);
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-      if (error) throw error;
-    } catch (err: any) {
-      setError(err.message || 'Error al conectar con Google.');
-    }
-  };
+  setCargando(false);
+};
+
+const iniciarSesionConGoogle = async () => {
+  setError(null);
+  const { url, error } = await obtenerUrlGoogle();
+  if (error || !url) {
+    setError(error || 'Error al conectar con Google.');
+    return;
+  }
+  window.location.href = url;
+};
 
   return (
     <div className="w-full max-w-md mx-auto">

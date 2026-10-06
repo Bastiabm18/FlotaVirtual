@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { ConductorData } from '@/types/rutas';
 import { DatosUsuarioCompleto } from '@/types/usuario';
 import { ClienteData } from '@/types/usuario';
-import { cookies } from 'next/headers';
+import { cookies,headers  } from 'next/headers';
 
 
 
@@ -236,4 +236,80 @@ export async function cambiarEstadoCliente(id: number, estado_cliente: boolean):
 
   if (error) return { exito: false, error: error.message };
   return { exito: true, error: null };
+}
+
+
+//*********************************************************************** */
+
+type Resultado = { exito: boolean; error: string | null };
+
+export async function iniciarSesion(email: string, password: string): Promise<Resultado> {
+  try {
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return { exito: false, error: error.message };
+
+    return { exito: true, error: null };
+  } catch (err: any) {
+    return { exito: false, error: err.message || 'Error al iniciar sesión.' };
+  }
+}
+
+export async function registrarUsuario(payload: {
+  email: string;
+  password: string;
+  nombre: string;
+  empresa: string;
+}): Promise<Resultado> {
+  try {
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    const { error } = await supabase.auth.signUp({
+      email: payload.email,
+      password: payload.password,
+      options: {
+        data: {
+          nombre_completo: payload.nombre.trim(),
+          empresa: payload.empresa.trim(),
+        },
+      },
+    });
+    if (error) return { exito: false, error: error.message };
+
+    return { exito: true, error: null };
+  } catch (err: any) {
+    return { exito: false, error: err.message || 'Error al registrar.' };
+  }
+}
+
+export async function obtenerUrlGoogle(): Promise<{ url: string | null; error: string | null }> {
+  try {
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    const origin =
+      (await headers()).get('origin') || process.env.NEXT_PUBLIC_SITE_URL || '';
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${origin}/auth/callback` },
+    });
+    if (error || !data.url) {
+      return { url: null, error: error?.message || 'No se pudo iniciar con Google.' };
+    }
+
+    return { url: data.url, error: null };
+  } catch (err: any) {
+    return { url: null, error: err.message || 'Error al conectar con Google.' };
+  }
+}
+
+export async function cerrarSesion(): Promise<Resultado> {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  const { error } = await supabase.auth.signOut();
+  return { exito: !error, error: error?.message ?? null };
 }
