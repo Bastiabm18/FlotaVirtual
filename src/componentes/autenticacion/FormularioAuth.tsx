@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
 import { FiTruck, FiLock, FiMail, FiUser, FiBriefcase } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
 import { iniciarSesion, obtenerUrlGoogle, registrarUsuario } from '@/actions/usuario/actions';
@@ -17,7 +16,7 @@ export default function FormularioAuth() {
   const [error, setError] = useState<string | null>(null);
 
   const router = useRouter();
-  const supabase = createClient();
+
 
 const manejarAutenticacion = async (e: React.FormEvent) => {
   e.preventDefault();
